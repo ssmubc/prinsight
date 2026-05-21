@@ -356,7 +356,19 @@ Format as markdown.`;
   }
 }
 
-export async function predictPR(repo: string, prNumber: number): Promise<string> {
+export interface PredictResult {
+  summary: string;
+  risk_level: "LOW" | "MEDIUM" | "HIGH";
+  probabilities: Record<string, number>;
+  suggestions: unknown;
+  pr_metadata: {
+    number: number;
+    title: string;
+    author: string;
+  };
+}
+
+export async function predictPR(repo: string, prNumber: number): Promise<PredictResult> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY not set");
   }
@@ -375,9 +387,9 @@ export async function predictPR(repo: string, prNumber: number): Promise<string>
   await mcp.start();
   try {
     log("predict_pr_risk...");
-    const prediction = await mcp.callTool("predict_pr_risk", {
+    const prediction = (await mcp.callTool("predict_pr_risk", {
       pr_features: ml_features,
-    });
+    })) as { risk_level: "LOW" | "MEDIUM" | "HIGH"; probabilities: Record<string, number> };
 
     log(
       "suggest_reviewers... (this fetches code ownership and may take several minutes on first call)"
@@ -412,7 +424,18 @@ Provide a summary:
 
 Format as markdown.`;
 
-    return await callClaude(SYSTEM_PREDICT, userMessage);
+    const summary = await callClaude(SYSTEM_PREDICT, userMessage);
+    return {
+      summary,
+      risk_level: prediction.risk_level,
+      probabilities: prediction.probabilities,
+      suggestions,
+      pr_metadata: {
+        number: pr_metadata.number,
+        title: pr_metadata.title,
+        author: pr_metadata.author,
+      },
+    };
   } finally {
     mcp.close();
   }
@@ -424,12 +447,16 @@ Format as markdown.`;
 
 function printUsage(): void {
   console.error("Usage:");
-  console.error("  node agent/index.js analyze <repo>");
-  console.error("  node agent/index.js predict <repo> <pr_number>");
+  console.error("  node agent/index.js analyze <repo> [--json]");
+  console.error("  node agent/index.js predict <repo> <pr_number> [--json]");
 }
 
 async function main(): Promise<void> {
-  const [, , command, ...rest] = process.argv;
+  const argv = process.argv.slice(2);
+  const jsonMode = argv.includes("--json");
+  const positional = argv.filter((a) => !a.startsWith("--"));
+  const [command, ...rest] = positional;
+
   try {
     if (command === "analyze") {
       const repo = rest[0];
@@ -438,7 +465,11 @@ async function main(): Promise<void> {
         process.exit(1);
       }
       const analysis = await analyzeRepository(repo);
-      console.log("\n" + analysis);
+      if (jsonMode) {
+        console.log(JSON.stringify({ analysis }));
+      } else {
+        console.log("\n" + analysis);
+      }
     } else if (command === "predict") {
       const repo = rest[0];
       const prNumber = parseInt(rest[1] ?? "", 10);
@@ -446,8 +477,12 @@ async function main(): Promise<void> {
         printUsage();
         process.exit(1);
       }
-      const summary = await predictPR(repo, prNumber);
-      console.log("\n" + summary);
+      const result = await predictPR(repo, prNumber);
+      if (jsonMode) {
+        console.log(JSON.stringify(result));
+      } else {
+        console.log("\n" + result.summary);
+      }
     } else {
       printUsage();
       process.exit(1);
