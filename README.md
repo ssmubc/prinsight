@@ -1,7 +1,20 @@
 # PRInsight
 > AI-Powered GitHub PR Intelligence Agent
 
-**Live Demo:** _Coming after deployment_
+## 📋 Table of Contents
+
+- [🎯 What It Does](#-what-it-does)
+- [✨ Key Features](#-key-features)
+- [📸 Screenshots](#-screenshots)
+- [🎥 Demo Videos](#-demo-videos)
+- [🏗️ Architecture](#️-architecture)
+- [📊 ML Model Performance](#-ml-model-performance)
+- [🚀 Getting Started](#-getting-started)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🎓 What I Learned](#-what-i-learned)
+- [🚧 Future Improvements](#-future-improvements)
+- [📝 License](#-license)
+- [👤 Author](#-author)
 
 ## 🎯 What It Does
 
@@ -13,6 +26,37 @@ PRInsight ingests a GitHub repository's recent activity — 90 days of PR histor
 - **PR merge-time prediction** — XGBoost classifier (68% accuracy, F1 0.57) with calibrated class probabilities
 - **Owner-aware reviewer suggestions** — top-3 reviewers ranked by ownership + recency, with PR author and bots filtered out
 - **Executive briefings** — Claude Opus 4.7 turns raw tool output into a markdown report you can paste into a 1:1
+
+## 📸 Screenshots
+
+### Landing Page
+Modern dark-themed interface showcasing PRInsight features:
+![Landing Page](screenshots/landing-page.png)
+
+### Repository Analyzer
+AI-powered analysis of team patterns and bottlenecks:
+![Repository Analyzer](screenshots/repo_analyzer.png)
+
+### Repository Analyzer - Critical Insights
+Identifies single-maintainer dependencies and risks:
+![Bottlenecks](screenshots/bottlenecks.png)
+
+### Repository Analyzer - AI Recommendations
+Claude generates actionable recommendations:
+![Recommendations](screenshots/recommendations.png)
+
+### PR Predictor - Risk Prediction
+ML classifier with confidence scores:
+![PR Predictor](screenshots/prpredictor.png)
+
+### PR Predictor - Recommended Reviewers
+Smart reviewer suggestions based on code ownership and expertise:
+![Recommended Reviewers](screenshots/concerns.png)
+
+## 🎥 Demo Videos
+
+- **[Repository Analyzer Demo](https://youtu.be/a6w4Kzzinl8)** - See AI-powered team analysis (~30 sec)
+- **[PR Predictor Demo](https://youtu.be/HS_48oKJdbA)** - Watch ML risk classifier in action (~30 sec)
 
 ## 🏗️ Architecture
 
@@ -50,6 +94,32 @@ flowchart LR
   MCP -->|Octokit| GH[GitHub REST API]
   MCP -->|spawn python3| ML[XGBoost · predict.py]
 ```
+
+## 📊 ML Model Performance
+
+| Metric                   | Value |
+| ------------------------ | ----- |
+| Overall accuracy         | 68.3% |
+| Macro F1                 | 0.57  |
+| LOW-risk F1              | 0.80  |
+| MEDIUM-risk F1           | 0.70  |
+| HIGH-risk F1             | 0.21  |
+| Training examples (post-filter) | 596 |
+| Baseline (majority class)| 43.5% |
+
+**Training data:** 621 merged PRs from `vercel/next.js`, `facebook/react`, `microsoft/typescript`, `nodejs/node`, and `vuejs/core` over a 30-day window. 25 PRs with merge times > 30 days were filtered as stale-but-eventually-merged outliers, leaving 596 for training.
+
+**Top feature importances** (XGBoost):
+
+| Feature | Importance |
+| --- | --- |
+| `repo_nodejs_node`        | 0.41 |
+| `repo_vuejs_core`         | 0.11 |
+| `review_count`            | 0.07 |
+| `author_pr_count`         | 0.06 |
+| `total_lines_changed`     | 0.05 |
+
+**Key insight:** repo identity dominates the feature importances — different OSS projects have fundamentally different review cultures. Code-shape features (lines changed, file count) provide marginal additional lift. The HIGH-risk class is under-predicted (recall 15%) due to class imbalance; a real production model would either use `class_weight="balanced"` or collect more HIGH-class examples.
 
 ## 🚀 Getting Started
 
@@ -131,31 +201,6 @@ cd ../ml-model
 python3 train.py
 ```
 
-## 📊 ML Model Performance
-
-| Metric                   | Value |
-| ------------------------ | ----- |
-| Overall accuracy         | 68.3% |
-| Macro F1                 | 0.57  |
-| LOW-risk F1              | 0.80  |
-| MEDIUM-risk F1           | 0.70  |
-| HIGH-risk F1             | 0.21  |
-| Training examples (post-filter) | 596 |
-| Baseline (majority class)| 43.5% |
-
-**Training data:** 621 merged PRs from `vercel/next.js`, `facebook/react`, `microsoft/typescript`, `nodejs/node`, and `vuejs/core` over a 30-day window. 25 PRs with merge times > 30 days were filtered as stale-but-eventually-merged outliers, leaving 596 for training.
-
-**Top feature importances** (XGBoost):
-
-| Feature | Importance |
-| --- | --- |
-| `repo_nodejs_node`        | 0.41 |
-| `repo_vuejs_core`         | 0.11 |
-| `review_count`            | 0.07 |
-| `author_pr_count`         | 0.06 |
-| `total_lines_changed`     | 0.05 |
-
-**Key insight:** repo identity dominates the feature importances — different OSS projects have fundamentally different review cultures. Code-shape features (lines changed, file count) provide marginal additional lift. The HIGH-risk class is under-predicted (recall 15%) due to class imbalance; a real production model would either use `class_weight="balanced"` or collect more HIGH-class examples.
 
 ## 🛠️ Tech Stack
 
@@ -176,10 +221,6 @@ python3 train.py
 - Claude Opus 4.7 (adaptive thinking, high effort)
 - XGBoost multi-class classifier
 - Anthropic SDK · MCP SDK protocol
-
-## 📸 Screenshots
-
-_Screenshots coming soon — landing, analyze flow, and predict-with-risk-badge views._
 
 ## 🎓 What I Learned
 
@@ -209,13 +250,13 @@ _Screenshots coming soon — landing, analyze flow, and predict-with-risk-badge 
 
 ## 📝 License
 
-MIT
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## 👤 Author
 
 **Sharon Marfatia**
 - GitHub: [@ssmubc](https://github.com/ssmubc)
-- LinkedIn: _Your LinkedIn URL_
+- LinkedIn: [Sharon Marfatia](https://www.linkedin.com/in/sharon-marfatia/)
 
 ---
 
