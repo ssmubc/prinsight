@@ -1,0 +1,21 @@
+{
+  "name": "prinsight-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --loader ts-node/esm index.ts",
+    "build": "tsc",
+    "analyze": "node --loader ts-node/esm index.ts analyze",
+    "predict": "node --loader ts-node/esm index.ts predict"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.97.0",
+    "@octokit/rest": "^20.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.0.0"
+  }
+}
