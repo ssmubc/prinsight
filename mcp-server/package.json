@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node --loader ts-node/esm src/index.ts",
     "build": "tsc",
-    "test": "node --loader ts-node/esm src/test.ts"
+    "test": "node --loader ts-node/esm src/test.ts",
+    "collect-data": "node --loader ts-node/esm src/collect-training-data.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
